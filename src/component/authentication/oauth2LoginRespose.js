@@ -6,24 +6,14 @@ export default function Oauth2LoginResponse() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        let urlString = window.location.href;
-        let urlParams = new URL(urlString).searchParams;
-        console.log(urlParams);
-
-        if (urlParams) {
-            let accessToken = urlParams.get("accessToken");
-            let refreshToken = urlParams.get("refreshToken");
-
-            axios
-                .get(`auth/get-cookies?accessToken=${accessToken}&refreshToken=${refreshToken}`)
-                .then(() => {
-                    localStorage.setItem("authenticated", "true");
-                    localStorage.setItem("username", urlParams.get("username"));
-                    navigate("/welcome");
-                })
-                .catch(() => navigate("/login"));
-        }
-        else navigate("/login");
+        axios
+            .get("auth/if-authenticated")
+            .then(() => {
+                localStorage.setItem("authentication", "oauth");
+                localStorage.setItem("username", new URL(window.location.href).searchParams.get("username"));
+                navigate("/");
+            })
+            .catch(() => navigate("/login"))
     });
 
     return null;

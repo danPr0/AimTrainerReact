@@ -1,26 +1,14 @@
-import {useNavigate} from "react-router-dom";
-import {useEffect, useState} from "react";
-import axios from "axios";
+import {Navigate} from "react-router-dom";
 import renewAccessToken from "../authentication/renewAccessToken";
+import {useEffect, useState} from "react";
 
-export default function IfNotAuthenticated({children}) {
-    const navigate = useNavigate();
-    let [render, setRender] =
-        useState(localStorage.getItem("authenticated") ? children : null);
+export default  function IfNotAuthenticated({children}) {
+    const [authenticated, setAuth] = useState(document.cookie.indexOf("accessTokenClone=") !== -1);
 
     useEffect(() => {
-        axios
-            .get("auth/if-authenticated")
-            .then(() => {
-                localStorage.setItem("authenticated", "true");
-                navigate("/welcome");
-            })
-            .catch(() => {
-                renewAccessToken();
-                if (!localStorage.getItem("authenticated"))
-                    setRender(children);
-            })
-    }, [children, navigate]);
-
-    return render;
+        if (document.cookie.indexOf("accessTokenClone=") === -1) {
+            renewAccessToken().then(ifSuccessful => setAuth(ifSuccessful))
+        }
+    })
+    return (authenticated) ? <Navigate to="/"/> : children;
 }

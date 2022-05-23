@@ -4,50 +4,16 @@ import {Form, Formik} from "formik";
 import * as Yup from "yup";
 import Input from "./input";
 import renewAccessToken from "../authentication/renewAccessToken";
-import {useCookies} from "react-cookie";
 import axios from "axios";
 
 export default function ChangeNicknameForm() {
     const [declinedRequestMessage, setDeclinedRequestMessage] = useState("");
-    const [, setCookie] = useCookies();
-    const navigate = useNavigate();
-
-    function sendRequest(values) {
-        axios
-            .post("auth/change-username", values)
-            .then((response) => {
-                console.log(response.data);
-                setCookie("accessToken", response.data, {httpOnly: true});
-                localStorage.setItem("username", values.newUsername);
-                navigate("/welcome");
-            })
-            .catch((error) => {
-                console.log(error.toJSON());
-                if (error.response.status === 401) {
-                    renewAccessToken();
-                    if (localStorage.getItem("authenticated"))
-                        sendRequest();
-                    else navigate("/login");
-                }
-                else setDeclinedRequestMessage(error.response.data);
-            })
-    }
+    let navigate = useNavigate();
 
     return (
-        <Formik initialValues={{newUsername: "", password: ""}}
-
-                validationSchema={Yup.object({
-                    newUsername: Yup.string()
-                        .min(4, "Must be 4-25 characters")
-                        .max(25, "Must be 4-25 characters")
-                        .required("Required"),
-                    password: Yup.string()
-                        .min(8, "Must be 8-20 characters")
-                        .max(20, "Must be 8-20 characters")
-                        .required("Required")
-                })}
-
-                onSubmit={values => sendRequest(values)}
+        <Formik initialValues={{newUsername: ""}}
+                validationSchema={getValidationSchema()}
+                onSubmit={values => sendInput(values)}
         >
             {formik => (
                 <Form>
@@ -58,13 +24,6 @@ export default function ChangeNicknameForm() {
                             type="text"
                             placeholder="Enter new nickname"
                         />
-
-                        <Input
-                            label="Password"
-                            name="password"
-                            type="password"
-                            placeholder="Enter password"
-                        />
                     </div>
 
                     <div className="text-danger">{declinedRequestMessage}</div>
@@ -73,14 +32,39 @@ export default function ChangeNicknameForm() {
                             className={!formik.isValid ? "btn btn-primary disabled w-100 py-1 px-5 my-1"
                                 : "btn btn-primary w-100 py-1 px-5 my-1"}> OK
                     </button>
-
-                    <div style={{textAlign: "center"}} aria-disabled={declinedRequestMessage !== ""}>
-                        <small>
-                            <a href={"/reset-password"}> Forgot password? </a>
-                        </small>
-                    </div>
                 </Form>
             )}
         </Formik>
     );
+
+    function getValidationSchema() {
+        return Yup.object({
+            newUsername: Yup.string()
+                .min(4, "Must be 4-25 characters")
+                .max(25, "Must be 4-25 characters")
+                .required("Required")
+        })
+    }
+
+    function sendInput(values) {
+        axios
+            .post("auth/change-username-for-oauth", values)
+            .then(() => {
+                localStorage.setItem("username", values.newUsername);
+                renewAccessToken().then(ifSuccessful => navigate(ifSuccessful ? "/" : "/login"))
+            })
+            .catch(error => handleError(error.response, values))
+    }
+
+    function handleError(error, values) {
+        if (error.status === 400)
+            setDeclinedRequestMessage(error.data)
+        else {
+            renewAccessToken().then(ifSuccessful => {
+                if (ifSuccessful)
+                    sendInput(values);
+                else navigate("/login");
+            })
+        }
+    }
 }

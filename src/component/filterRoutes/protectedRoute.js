@@ -1,22 +1,32 @@
 import {useNavigate} from "react-router-dom"
-import {useEffect, useState} from "react";
 import renewAccessToken from "../authentication/renewAccessToken";
+import {useEffect, useState} from "react";
 
+// export default function ProtectedRoute({children}) {
+//     let navigate = useNavigate();
+//
+//     useEffect(() => {
+//         if (document.cookie.indexOf("accessTokenClone=") === -1) {
+//             renewAccessToken().then(ifSuccessful => {
+//                 if (!ifSuccessful)
+//                     navigate("/login");
+//             })
+//         }
+//     }, [navigate])
+//     return children;
+// }
 export default function ProtectedRoute({children}) {
-    const navigate = useNavigate();
-    let [render, setRender] =
-        useState(localStorage.getItem("authenticated") ? children : null);
+    let navigate = useNavigate();
+    const [authenticated, setAuth] = useState(document.cookie.indexOf("accessTokenClone=") !== -1);
 
     useEffect(() => {
-        console.log("dlkfjlsfjklsdfjsdflsjlfsdfjl")
-
-        if (!localStorage.getItem("authenticated")) {
-            renewAccessToken();
-            if (!localStorage.getItem("authenticated"))
-                navigate("/login");
-            else setRender(children);
+        if (document.cookie.indexOf("accessTokenClone=") === -1) {
+            renewAccessToken().then(ifSuccessful => {
+                setAuth(ifSuccessful);
+                if (!ifSuccessful)
+                    navigate("/login");
+            })
         }
-    }, [navigate, children])
-
-    return render;
+    }, [navigate])
+    return (authenticated) ? children : null;
 }

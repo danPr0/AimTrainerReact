@@ -3,55 +3,68 @@ import Menu from "./menu";
 import React, {useEffect, useRef, useState} from "react";
 import {Table} from "react-bootstrap";
 import ReactDOM from "react-dom";
+import renewAccessToken from "./authentication/renewAccessToken";
+import {useNavigate} from "react-router-dom";
 
 export default function ScoresTable() {
     let results = useRef([]);
+    let navigate = useNavigate();
     let [sortedField, setSortedField] = useState(null);
-
-    function addTable() {
-            ReactDOM.render(
-                results.current.map((result, index) => {
-                    /** @param {{username, smResult, mdResult, lgResult}} result**/
-                        return (
-                            <tr key={index}>
-                                <td className="text-white">{index + 1}</td>
-                                <td className="text-white">{result.username}</td>
-                                <td className="text-white">{result.smResult}</td>
-                                <td className="text-white">{result.mdResult}</td>
-                                <td className="text-white">{result.lgResult}</td>
-                            </tr>
-                        );
-                    }),
-                document.getElementById("tableBody")
-            );
-    }
 
     useEffect(() => {
         if (sortedField !== null) {
             results.current.sort((a, b) => {
-                if (a[sortedField] < b[sortedField]) {
+                if (a[sortedField] > b[sortedField]) {
                     return 1;
                 }
-                if (a[sortedField] > b[sortedField]) {
+                if (a[sortedField] < b[sortedField]) {
                     return -1;
                 }
                 return 0;
             });
-            console.log(results);
             addTable();
         }
     }, [sortedField]);
 
+    function addTable() {
+        ReactDOM.render(
+            results.current.map((result, index) => {
+                /** @param {{username, smResult, mdResult, lgResult}} result**/
+                return (
+                    <tr key={index}>
+                        <td className="text-white">{index + 1}</td>
+                        <td className="text-white">{result.username}</td>
+                        <td className="text-white">{result.smResult}</td>
+                        <td className="text-white">{result.mdResult}</td>
+                        <td className="text-white">{result.lgResult}</td>
+                    </tr>
+                );
+            }),
+            document.getElementById("tableBody")
+        );
+    }
+
     useEffect(() => {
-        axios
-            .get("/get-results")
-            .then((response) => {
-                console.log(response.data);
-                results.current = response.data;
-                addTable();
-            })
-            .catch((error) => console.log(error.response.data));
-    }, []);
+        function getResults() {
+            axios
+                .get("/get-results")
+                .then((response) => {
+                    console.log(response.data);
+                    results.current = response.data;
+                    addTable();
+                })
+                .catch((error) => {
+                    console.log(error.toJSON());
+                    renewAccessToken().then(ifSuccessful => {
+                        if (ifSuccessful)
+                            getResults();
+                        else navigate("/login");
+                    })
+                });
+        }
+        
+        getResults();
+    }, [navigate]);
 
     return (
         <div className="container-fluid px-3 bg-black" style={{height: "100vh"}}>
@@ -63,14 +76,10 @@ export default function ScoresTable() {
                 <thead>
                 <tr>
                     <th>
-                        <button type="button" onClick={() => setSortedField("number")}>
-                            #
-                        </button>
+                        #
                     </th>
                     <th>
-                        <button type="button" onClick={() => setSortedField("username")}>
-                            Nickname
-                        </button>
+                        Nickname
                     </th>
                     <th>
                         <button type="button" onClick={() => setSortedField("smResult")}>

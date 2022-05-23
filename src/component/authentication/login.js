@@ -14,7 +14,7 @@ function Login() {
                 <a className="btn btn-outline-light w-100"
                    href="http://localhost:8080/oauth2/authorize/google">
                     <img src={googleLogo} height="20" width="20" className="mx-2 my-1" alt=""/>
-                    Sign up with Google
+                    Continue with Google
                 </a>
                 <div style={{textAlign: "center"}}>
                     <small>

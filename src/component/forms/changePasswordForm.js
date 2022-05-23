@@ -4,62 +4,18 @@ import {Form, Formik} from "formik";
 import * as Yup from "yup";
 import Input from "./input";
 import renewAccessToken from "../authentication/renewAccessToken";
-import {useCookies} from "react-cookie";
 import axios from "axios";
 
 export default function ChangePasswordForm() {
     const [declinedRequestMessage, setDeclinedRequestMessage] = useState("");
     const [passwordsMismatch, setPasswordsMismatch] = useState("");
-    const [, setCookie] = useCookies();
     const navigate = useNavigate();
-
-    function sendRequest(values) {
-        axios
-            .post("auth/change-password", values)
-            .then((response) => {
-                console.log(response.data);
-                setCookie("accessToken", response.data, {httpOnly: true});
-                navigate("/welcome");
-            })
-            .catch((error) => {
-                console.log(error.toJSON());
-                if (error.response.status === 401) {
-                    renewAccessToken();
-                    if (localStorage.getItem("authenticated")) {
-                        console.log("sfkskdfsdksklflsdfksk")
-                        sendRequest(values);
-                    }
-                    else navigate("/login");
-                }
-                else setDeclinedRequestMessage(error.response.data);
-            })
-    }
 
     return (
         <Formik initialValues={{oldPassword: "", newPassword: "", newPasswordConfirm: ""}}
-
-                validationSchema={Yup.object({
-                    oldPassword: Yup.string()
-                        .min(8, "Must be 8-20 characters")
-                        .max(20, "Must be 8-20 characters")
-                        .required("Required"),
-                    newPassword: Yup.string()
-                        .min(8, "Must be 8-20 characters")
-                        .max(20, "Must be 8-20 characters")
-                        .required("Required"),
-                    newPasswordConfirm: Yup.string()
-                        .min(8, "Must be 8-20 characters")
-                        .max(20, "Must be 8-20 characters")
-                        .required("Required")
-                })}
-
-                validate={values => {
-                    if (values.newPassword !== values.newPasswordConfirm)
-                        setPasswordsMismatch("Passwords mismatch")
-                    else setPasswordsMismatch("");
-                }}
-
-                onSubmit={values => sendRequest(values)}
+                validationSchema={getValidationSchema()}
+                validate={values => setPasswordsMismatch((values.newPassword !== values.newPasswordConfirm) ? "Passwords mismatch" : "")}
+                onSubmit={values => sendInput(values)}
         >
             {formik => (
                 <Form>
@@ -70,14 +26,12 @@ export default function ChangePasswordForm() {
                             type="password"
                             placeholder="Enter old password"
                         />
-
                         <Input
                             label="New password"
                             name="newPassword"
                             type="password"
                             placeholder="Enter new password"
                         />
-
                         <Input
                             label="New Password Confirm"
                             name="newPasswordConfirm"
@@ -103,4 +57,40 @@ export default function ChangePasswordForm() {
             )}
         </Formik>
     );
+
+    function getValidationSchema() {
+        return Yup.object({
+            oldPassword: Yup.string()
+                .min(8, "Must be 8-20 characters")
+                .max(20, "Must be 8-20 characters")
+                .required("Required"),
+            newPassword: Yup.string()
+                .min(8, "Must be 8-20 characters")
+                .max(20, "Must be 8-20 characters")
+                .required("Required"),
+            newPasswordConfirm: Yup.string()
+                .min(8, "Must be 8-20 characters")
+                .max(20, "Must be 8-20 characters")
+                .required("Required")
+        })
+    }
+
+    function sendInput(values) {
+        axios
+            .post("auth/change-password", values)
+            .then(() => navigate("/"))
+            .catch(error => handleError(error.response, values))
+    }
+
+    function handleError(error, values) {
+        if (error.status === 400)
+            setDeclinedRequestMessage(error.data)
+        else {
+            renewAccessToken().then(ifSuccessful => {
+                if (ifSuccessful)
+                    sendInput(values);
+                else navigate("/login");
+            })
+        }
+    }
 }

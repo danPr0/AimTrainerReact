@@ -13,42 +13,9 @@ export default function SignupForm() {
 
     return (
         <Formik initialValues={{username: "", email: "", password: "", passwordConfirm: ""}}
-
-                validationSchema={
-                    Yup.object({
-                        username: Yup.string()
-                            .min(4, "Must be 4-25 characters")
-                            .max(25, "Must be 4-25 characters")
-                            .required("Required"),
-                        email: Yup.string()
-                            .email("Invalid email address")
-                            .required("Required"),
-                        password: Yup.string()
-                            .min(8, "Must be 8-20 characters")
-                            .max(20, "Must be 8-20 characters")
-                            .required("Required"),
-                        passwordConfirm: Yup.string()
-                            .required("Required")
-                    })}
-
-                validate={values => {
-                    if (values.password !== values.passwordConfirm)
-                        setPasswordsMismatch("Passwords mismatch")
-                    else setPasswordsMismatch("");
-                }}
-
-                onSubmit={values =>
-                    axios
-                        .post("auth/signup", values)
-                        .then((response) => {
-                            if (response.status === 200) {
-                                navigate("/login");
-                            } else setDeclinedRequestMessage(response.data);
-                        })
-                        .catch((error) => {
-                            console.log(error.toJSON());
-                        })
-                }
+                validationSchema={getValidationSchema()}
+                validate={values => setPasswordsMismatch((values.password !== values.passwordConfirm) ? "Passwords mismatch" : "")}
+                onSubmit={values => sendInput(values)}
         >
             {formik => (
                 <Form>
@@ -59,21 +26,18 @@ export default function SignupForm() {
                             type="text"
                             placeholder="Enter nickname"
                         />
-
                         <Input
                             label="Email"
                             name="email"
                             type="text"
                             placeholder="Enter your email"
                         />
-
                         <Input
                             label="Password"
                             name="password"
                             type="password"
                             placeholder="Enter password"
                         />
-
                         <Input
                             label="Password confirm"
                             name="passwordConfirm"
@@ -92,4 +56,29 @@ export default function SignupForm() {
             )}
         </Formik>
     );
+
+    function getValidationSchema() {
+        return Yup.object({
+            username: Yup.string()
+                .min(4, "Must be 4-25 characters")
+                .max(25, "Must be 4-25 characters")
+                .required("Required"),
+            email: Yup.string()
+                .email("Invalid email address")
+                .required("Required"),
+            password: Yup.string()
+                .min(8, "Must be 8-20 characters")
+                .max(20, "Must be 8-20 characters")
+                .required("Required"),
+            passwordConfirm: Yup.string()
+                .required("Required")
+        })
+    }
+
+    function sendInput(values) {
+        axios
+            .post("auth/signup", values)
+            .then(() => navigate("/confirm-signup"))
+            .catch(error => setDeclinedRequestMessage(error.response.data))
+    }
 }

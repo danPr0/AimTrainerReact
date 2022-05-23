@@ -12,31 +12,8 @@ export default function LoginForm() {
 
     return (
         <Formik initialValues={{email: "", password: ""}}
-
-                validationSchema={Yup.object({
-                    email: Yup.string()
-                        .email("Invalid email address")
-                        .required("Required"),
-                    password: Yup.string()
-                        .min(8, "Must be 8-20 characters")
-                        .max(20, "Must be 8-20 characters")
-                        .required("Required")
-                })}
-
-                onSubmit={values =>
-                    axios
-                        .post("auth/login", values)
-                        .then(response => {
-                            localStorage.setItem("username", response.data);
-                            localStorage.setItem("authenticated", "true");
-                            navigate("/welcome");
-                        })
-                        .catch((error) => {
-                            console.log(error.toJSON());
-                            console.log(error.response.data);
-                            setDeclinedRequestMessage(error.response.data);
-                        })
-                }
+                validationSchema={getValidationSchema()}
+                onSubmit={values => sendInput(values)}
         >
             {formik => (
                 <Form>
@@ -47,7 +24,6 @@ export default function LoginForm() {
                             type="text"
                             placeholder="Enter email"
                         />
-
                         <Input
                             label="Password"
                             name="password"
@@ -74,4 +50,27 @@ export default function LoginForm() {
             )}
         </Formik>
     );
+
+    function getValidationSchema(){
+        return Yup.object({
+            email: Yup.string()
+                .email("Invalid email address")
+                .required("Required"),
+            password: Yup.string()
+                .min(8, "Must be 8-20 characters")
+                .max(20, "Must be 8-20 characters")
+                .required("Required")
+        })
+    }
+
+    function sendInput(values) {
+        axios
+            .post("auth/login", values)
+            .then(response => {
+                localStorage.setItem("authentication", "local");
+                localStorage.setItem("username", response.data);
+                navigate("/");
+            })
+            .catch(error => setDeclinedRequestMessage(error.response.data))
+    }
 }

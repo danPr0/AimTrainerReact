@@ -1,11 +1,8 @@
 import axios from "axios";
 
-export default function RenewAccessToken() {
-    axios
+export default async function RenewAccessToken() {
+     await axios
         .post("auth/renew-access-token")
-        .then(() => localStorage.setItem("authenticated", "true"))
-        .catch(() => {
-            localStorage.setItem("authenticated", "");
-            localStorage.removeItem("authenticated");
-        })
+        .catch(() => {})
+     return document.cookie.indexOf("accessTokenClone=") !== -1;
 }
