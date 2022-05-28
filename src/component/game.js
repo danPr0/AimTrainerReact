@@ -96,7 +96,7 @@ const Game = () => {
 
             <div className="container-fluid d-flex px-3 bg-black justify-content-center">
                 <pre className="text-white">
-                    {game.activated ? getInfoBar() : null}
+                    {game.activated && getInfoBar()}
                 </pre>
             </div>
 
@@ -134,4 +134,5 @@ const Game = () => {
         return info;
     }
 }
+
 export default Game;

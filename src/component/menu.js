@@ -34,10 +34,10 @@ export default function Menu() {
                     <Nav className="justify-content-end px-5">
                         <NavDropdown title={localStorage.getItem("username")} id="basic-nav-dropdown">
                             <NavDropdown.Item href="/change-nickname">Change nickname</NavDropdown.Item>
-                            {localStorage.getItem("authentication") === "local" ?
+                            {localStorage.getItem("authentication") === "local" &&
                                 <div>
                                     <NavDropdown.Item href="/change-password">Change password</NavDropdown.Item>
-                                </div> : null
+                                </div>
                             }
                             <NavDropdown.Divider />
                             <NavDropdown.Item onClick={() => logout()}>Log out</NavDropdown.Item>

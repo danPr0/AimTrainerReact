@@ -34,13 +34,6 @@ const App = () => {
 }
 
 const AppWrapper = () => {
-    // useEffect(() => {
-    //     const id = setInterval(() => {
-    //         localStorage.removeItem("authenticated");
-    //     }, 15 * 60 * 1000);
-    //     return () => clearInterval(id);
-    // }, []);
-
     return (
         <BrowserRouter>
             <App/>

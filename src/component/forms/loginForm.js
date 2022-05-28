@@ -39,13 +39,15 @@ export default function LoginForm() {
                                 : "btn btn-primary w-100 py-1 px-5 my-1"}> Log in
                     </button>
 
-                    <div style={{textAlign: "center"}} aria-disabled={declinedRequestMessage === ""}>
-                        <small>
-                            <a href={"/reset-password"}>
-                                {(declinedRequestMessage) ? "Forgot your password?" : ""}
-                            </a>
-                        </small>
-                    </div>
+                    {declinedRequestMessage  &&
+                        <div style={{textAlign: "center"}}>
+                            <small>
+                                <a href={"/reset-password"}>
+                                    Forgot password?
+                                </a>
+                            </small>
+                        </div>
+                    }
                 </Form>
             )}
         </Formik>

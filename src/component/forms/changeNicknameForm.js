@@ -48,7 +48,7 @@ export default function ChangeNicknameForm() {
 
     function sendInput(values) {
         axios
-            .post("auth/change-username-for-oauth", values)
+            .post(`auth/change-username?newUsername=${values.newUsername}`)
             .then(() => {
                 localStorage.setItem("username", values.newUsername);
                 renewAccessToken().then(ifSuccessful => navigate(ifSuccessful ? "/" : "/login"))
