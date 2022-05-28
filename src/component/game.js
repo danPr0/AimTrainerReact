@@ -11,7 +11,7 @@ const Game = () => {
     const navigate = useNavigate();
     const [aimLocation, setAimLocation] = useState({x: null, y: null});
     const [date, setDate] = useState(new Date().getTime());
-    let gameInfo = useRef({activated: false, shotTime: 0, aimsLeft: maxAims, total: 0, interval: "500", size: "sm"});
+    let gameInfo = useRef({activated: false, setUpDisabled: false, shotTime: 0, aimsLeft: maxAims, total: 0, interval: "500", size: "sm"});
     let game = gameInfo.current;
     let startButton = useRef();
     let aim = useRef();
@@ -69,7 +69,7 @@ const Game = () => {
             </div>
 
             <div className="container-fluid d-flex px-3 bg-black">
-                <select name="interval" id="interval" className="m-auto" disabled={!!(game.activated)}
+                <select name="interval" id="interval" className="m-auto" disabled={!!(game.setUpDisabled)}
                         onChange={(event) => game.interval = event.target.value}>
                     <option value="500">500</option>
                     <option value="1000">1000</option>
@@ -80,13 +80,14 @@ const Game = () => {
                 <span id="startButton" className="mx-auto">
                     <button className="btn btn-secondary" onClick={() => {
                         game.activated = true;
+                        game.setUpDisabled = true;
                         setAimLocation(calculateLocation());
                     }}>
                         Start
                     </button>
                 </span>
 
-                <select name="size" id="size" className="m-auto" disabled={!!(game.activated)}
+                <select name="size" id="size" className="m-auto" disabled={!!(game.setUpDisabled)}
                         onChange={(event) => game.size = event.target.value}>
                     <option value="sm">Small</option>
                     <option value="md">Medium</option>
@@ -110,7 +111,7 @@ const Game = () => {
     )
 
     function processShot() {
-        game.aimsLeft--;
+        game.setUpDisabled = --game.aimsLeft;
         game.shotTime = new Date().getTime() - date;
         game.total += game.shotTime;
         setAimLocation(calculateLocation());
